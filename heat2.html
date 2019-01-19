@@ -1,0 +1,139 @@
+<html>
+<head>
+ <!--library loading -->
+  <script src="lib/d3/d3.min.js"></script>
+  <script src="lib/jquery-3.3.1.min.js"></script>
+
+</head>
+
+<body>
+  <h2>文字認識アプリ</h2>
+  <h4 id="resultarea">ここに結果が表示されます。</h4>
+  <div>
+    <input type="button" id="sendbutton" value="check">
+    <input type="button" id="clearbutton" value="clear">
+  </div>
+  <div id='heat graph-bar'></div>
+  <div id ="test">
+    <svg width="500" height="400">
+    </svg>
+  </div>
+
+
+<!--  <script src="script/Graph.js"></script>
+-->
+  <script type="text/javascript">
+
+  list=[]
+  for(let i =0 ; i<10 ;i++){
+    for(let j =0; j<10 ; j++){
+      list.push({"x":i,"y":j,"v":0})
+    }
+  }
+
+  let svg = d3.select('svg')
+
+  svg.selectAll("g")
+     .data(list)
+     .enter()
+     .append("g")
+     .append("rect")
+     .attr("x",function(d,i){return d.x*10})
+     .attr("y",function(d,i){return d.y*10})
+     .attr("id",function(d){return "("+d.x +","+d.y+")"})
+     .attr("height","10")
+     .attr("width","10")
+     .attr("fill","white")
+     .attr("stroke","black")
+     .attr("class","element")
+     .attr("data-value",function(d){return d.v})
+
+     //mouse event
+     $(function(){
+           flag = 0
+
+         $('svg')
+         .mousedown(function(e){
+           flag = 1
+           x = e.clientX
+           y = e.clientY
+
+           $(".element").each(function(i,e){
+             let offset = $(e).offset()
+             let x1 = offset.left
+             let x2 = x1 + 10
+             let y1 = offset.top
+             let y2 = y1 + 10
+
+             if(x>=x1 && x< x2 && y>y1 && y<=y2){
+               $(e).attr("fill","black")
+             }
+           })
+         })
+         .mousemove(function(d){
+           if(flag==1){
+           x = d.clientX
+           y = d.clientY
+
+           $(".element").each(function(i,e){
+             let offset = $(e).offset()
+             let x1 = offset.left
+             let x2 = x1 + 10
+             let y1 = offset.top
+             let y2 = y1 + 10
+
+             if(x>=x1 && x< x2 && y>y1 && y<=y2){
+               $(e).attr("fill","black")
+               $(e).attr("data-value",1)
+             }
+         })
+         }
+       })
+         .mouseup(function(e){
+           flag = 0;
+           list=[];
+
+         })
+     });
+
+  $("#sendbutton").on('click',function(){
+      let ary = [];
+
+    $(".element").each(function(i,e){
+      let color = $(e).attr("fill")
+      let bw = 0;
+
+      bw = color=="black"?1:0;
+      ary.push(bw);
+    })
+
+    console.log(ary)
+
+    $.ajax({
+      type:'GET',
+      url:'http://localhost:8080/test',
+      data:{"dataAry":ary},
+      dataType: 'jsonp',
+    }).done(function(data){
+      console.log(data)
+      $('#resultarea').html("記入した文字は' "+　data　+　" 'です")
+
+    }).fail(function(){
+      alert("failed to connect")
+    })
+
+
+  })
+
+  $("#clearbutton").on('click',function(){
+    $(".element").each(function(i,e){
+      $(e).attr("fill","white")
+    })
+    $('#resultarea').html("ここに結果が表示されます。")
+  })
+
+  </script>
+</body>
+
+
+</html>
